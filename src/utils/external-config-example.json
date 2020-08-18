@@ -1,0 +1,13 @@
+{
+    "AmplifyConfig": {
+        "Auth": {
+            "region": "us-east-1",
+            "userPoolId": "us-east-1_abcDEfgh",
+            "userPoolWebClientId": "4c51u8i9asx31gkv2ea5md5yb"
+        }
+    },
+    "ApiConfig" : {
+        "baseURL": "http://localhost:3000",
+        "timeout": 5000
+    }
+}
