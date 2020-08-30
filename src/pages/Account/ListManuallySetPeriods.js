@@ -159,7 +159,7 @@ export default function ListManuallySetPeriods(props) {
 
   return (
     <Page
-      pageTitle={intl.formatMessage({ id: "manually_added_periods" })}
+      pageTitle={intl.formatMessage({ id: "manually_set_periods" })}
       onBackClick={goBack}
     >
       <Container maxWidth="sm">

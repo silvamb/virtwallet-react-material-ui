@@ -61,7 +61,7 @@ const messages = defineMessages({
   keywords: 'Keywords',
   manual: 'Manual',
   members: 'Members',
-  manually_added_periods: 'Manually Added Periods',
+  manually_set_periods: 'Manually Set Periods',
   month_start_date_rule: 'Month Start Date Rule',
   parameter: 'Parameter',
   no_categories: 'Account has no categories yet',
