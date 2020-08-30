@@ -18,6 +18,7 @@ const KeywordRule = lazy(() => import('../pages/CategoryRule/KeywordRule'));
 const ExpressionRule = lazy(() => import('../pages/CategoryRule/ExpressionRule'));
 const UploadStatement = lazy(() => import('../pages/Wallet/UploadStatement'));
 const ReclassifyTransactions = lazy(() => import('../pages/Wallet/ReclassifyTransactions'));
+const ListManuallySetPeriods = lazy(() => import('../pages/Account/ListManuallySetPeriods'));
 
 const routes = [
   <PublicRoute path="/signin" redirectTo="/" exact component={SignIn} />,
@@ -34,6 +35,7 @@ const routes = [
   <PrivateRoute path="/account/:accountId/wallets" exact component={Wallet} />,
   <PrivateRoute path="/category" exact component={Category} />, 
   <PrivateRoute path="/account/:accountId/categories" exact component={Category} />,
+  <PrivateRoute path="/account/:accountId/manuallySetPeriods" exact component={ListManuallySetPeriods} />,
   <PrivateRoute path="/account/:accountId/categoryRule/keywords" exact component={KeywordRule} />,
   <PrivateRoute path="/account/:accountId/categoryRule/expressionRules" exact component={ExpressionRule} />,
   <PrivateRoute path="/account/:accountId/wallet/:walletId/transactions" exact component={ListTransactions} />,

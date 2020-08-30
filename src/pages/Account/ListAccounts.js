@@ -12,7 +12,7 @@ import Snackbar from '@material-ui/core/Snackbar';
 import Typography from '@material-ui/core/Typography';
 
 import { AccountLoader } from './Account';
-import AccountDetails from './AccountDetails';
+import EditAccount from './EditAccount';
 
 class MessageHandler {
   constructor(showMessageFn, intl) {
@@ -71,7 +71,7 @@ const AccountsPage = () => {
 
   const [accounts, setAccounts] = useState(null);
   const accountLoader = new AccountLoader(setAccounts, messageHandler);
-  const [selectedAccount, setAccount] = useState({});
+  const [selectedAccount, setAccount] = useState({empty: true});
   const [editing, setEditing] = useState(false);
   const [creating, setCreating] = useState(false);
   const [originalAccount, setOriginalAccount] = useState(null);
@@ -82,21 +82,21 @@ const AccountsPage = () => {
     if(accounts == null) {
       accountLoader.loadAccounts();
     }
-  }, [accounts]);
+  }, [accounts, accountLoader]);
 
   function openDetails(account) {
     setAccount(account)
   }
 
   function closeDetails() {
-    setAccount({});
+    setAccount({empty: true});
     setEditing(false);
     setOriginalAccount(null);
 
   }
 
-  function startEditing() {
-    setEditing(true);
+  function toggleEditing(editing = true) {
+    setEditing(editing);
     setOriginalAccount(selectedAccount);
   }
 
@@ -125,17 +125,17 @@ const AccountsPage = () => {
   return (
     <Page pageTitle={intl.formatMessage({ id: 'accounts' })}>
       <div className={classes.root}>
-        <AccountDetails 
+        {!selectedAccount.empty && <EditAccount 
           account={selectedAccount}
           isOpen={selectedAccount.accountId !== undefined}
           viewMode={!editing}
           closeAction={closeDetails}
           saveAction={save}
-          editAction={startEditing}
+          editAction={toggleEditing}
           fullScreen={fullScreen}
           toggleDrawer={toggleCategoryRuleDrawer}
           categoryRuleDrawerOpen={categoryRuleDrawerOpen}
-        />
+        />}
         {pageBody}
         <Snackbar
           anchorOrigin={{
