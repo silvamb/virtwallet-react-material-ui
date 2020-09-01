@@ -31,6 +31,7 @@ import Switch from '@material-ui/core/Switch';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import CheckIcon from '@material-ui/icons/Check';
+import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import SearchIcon from '@material-ui/icons/Search';
 import SortIcon from '@material-ui/icons/Sort';
 import TuneIcon from '@material-ui/icons/Tune';
@@ -122,6 +123,26 @@ const useStyles = makeStyles((theme) => ({
   },
   
 }));
+
+async function exportToCsv(accountId, walletId, from, to) {
+
+  const path = `account/${accountId}/wallet/${walletId}/export`;
+  const queryParameters = {
+    from: from,
+    to: to
+  }
+  
+  try {
+    console.log("Exporting transactions from accountId =", accountId, ", walletId =", walletId, "from =", from, "', to =", to)
+    const url = await loadFromRestApi(path, queryParameters);
+    console.log("CSV File S3 URL:", url);
+    window.open(url);
+  } catch(err) {
+    console.log("Error exporting transactions", err);
+    //this.messageHandler.showMessage("error_loading_transactions");
+    //this.setTransactions([]);
+  }
+}
 
 function sortByDate(list) {
   const listCopy = list.slice();
@@ -506,6 +527,10 @@ const TransactionsPage = (props) => {
     return <TransactionList transactions={filteredTransactions} openDetails={openDetails}/>
   }
 
+  async function downloadTransactions() {
+    exportToCsv(accountId, walletId, selectedFilter.startDate, selectedFilter.endDate);
+  }
+
   let pageBody;
   if(data == null) {
     pageBody = <Typography variant="body1">Loading...</Typography>
@@ -554,6 +579,9 @@ const TransactionsPage = (props) => {
           </IconButton>
           <IconButton aria-label="filter" onClick={() => showFilters(true)}>
             <TuneIcon />
+          </IconButton>
+          <IconButton aria-label="filter" onClick={downloadTransactions}>
+            <CloudDownloadIcon />
           </IconButton>
         </div>
         
