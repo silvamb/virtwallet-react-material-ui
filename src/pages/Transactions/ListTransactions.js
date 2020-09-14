@@ -37,7 +37,7 @@ import SortIcon from '@material-ui/icons/Sort';
 import TuneIcon from '@material-ui/icons/Tune';
 import { KeyboardDatePicker, MuiPickersUtilsProvider } from '@material-ui/pickers';
 
-import { ChangeSet, load, update } from '../../utils/dataSync';
+import { loadFromRestApi } from '../../utils/dataSync';
 
 import { DataLoader, saveTransaction } from './Transaction'
 import TransactionDetails from './TransactionDetails';
@@ -456,7 +456,7 @@ const TransactionsPage = (props) => {
 
     const showMessageAndUpdateList = () => {
       setMessage("Transaction Saved!");
-      dataLoader.load(accountId, walletId, initialFilter);
+      dataLoader.load(accountId, walletId, selectedFilter);
     };
     saveTransaction(originalTransaction, updatedTransaction, showMessageAndUpdateList);
   }

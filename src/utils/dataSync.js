@@ -87,7 +87,7 @@ export async function putInRestApi({resourcePath, data, queryParams}) {
 
 export async function saveInRestApi(resourcePath, changeSet) {
   const data = JSON.stringify(changeSet.transform());
-  return putInRestApi(resourcePath, data);
+  return putInRestApi({resourcePath, data});
 }
 
 export async function deleteInRestApi(resourcePath) {
@@ -104,12 +104,17 @@ export async function deleteInRestApi(resourcePath) {
   }
 }
 
-export async function load({ key, resourcePath, queryParams, callback }) {
+export async function load({ key, resourcePath, queryParams, transformer, callback }) {
   let data = loadFromStorage(key);
   console.log("Data from key", key, "in storage", data);
 
   if ((data === null || data === undefined) && resourcePath) {
     data = await loadFromRestApi(resourcePath, queryParams);
+
+    if(transformer) {
+      data = transformer(data, queryParams);
+    }
+
     saveInStorage(key, data);
   }
 

@@ -1,16 +1,41 @@
 
 import { CategoryLoader } from '../Category/Category';
-import { ChangeSet, create, load, loadFromStorage, update, remove } from '../../utils/dataSync';
+import { ChangeSet, load, loadFromRestApi, saveInStorage, update } from '../../utils/dataSync';
 
-function merger(transactions, changeSet) {
+class TransactionMetadata {
+  constructor({
+    max,
+    min,
+    lastQueryParams,
+    lastQueryTime = new Date().getTime(),
+    updatedAt = new Date(),
+    updatedTime = new Date().getTime()
+  }) {
+    this.max = max;
+    this.min = min;
+    this.lastQueryParams = lastQueryParams;
+    this.lastQueryTime = lastQueryTime;
+    this.updatedAt = updatedAt;
+    this.updatedTime = updatedTime;
+  }
+}
+
+class TransactionData {
+  constructor(transactionMetadata = new TransactionMetadata(), data = []) {
+    this.metadata = transactionMetadata;
+    this.data = data; 
+  }
+}
+
+function merger(transactions = new TransactionData(), changeSet) {
   console.log("Looking for transaction ", changeSet.oldState.txId);
-  const tx = transactions.find(transaction => transaction.txId === changeSet.oldState.txId);
-  const indexOfTx = transactions.indexOf(tx);
-  console.log("Found transaction ",changeSet.oldState.txId, " at index ", indexOfTx);
-  const updatedTransactions = transactions.slice();
+  const tx = transactions.data.find(transaction => transaction.txId === changeSet.oldState.txId);
+  const indexOfTx = transactions.data.indexOf(tx);
+  console.log("Found transaction ", changeSet.oldState.txId, " at index ", indexOfTx);
+  const updatedTransactions = transactions.data.slice();
   updatedTransactions[indexOfTx] = changeSet.newState;
 
-  return updatedTransactions;
+  return new TransactionData(transactions.metadata, updatedTransactions);
 }
 
 function diff(changeSet) {
@@ -41,6 +66,7 @@ export function saveTransaction(originalTransaction, updatedTransaction, onSave)
     console.log("No changes made to transaction, ignoring");
     return;
   }
+  console.log("Transaction changes", changes);
 
   const txId = originalTransaction.txId;
   const accountId = originalTransaction.accountId;
@@ -55,6 +81,53 @@ export function saveTransaction(originalTransaction, updatedTransaction, onSave)
     callback: onSave,
   });
 
+}
+
+function shouldGetFromRestApi({from, to}, {max, min, lastQueryParams, lastQueryTime}) {
+  const now = new Date().getTime();
+  const twelveHours = 12 * 60 * 60 * 1000;
+
+  console.log("Checking if transaction data should be retrieved from REST API", {from, to, max, min, lastQueryParams, lastQueryTime});
+
+  // No transactions has been loaded
+  if(!(max && min)) {
+    return true;
+  }
+
+  const maxDateNeedUpdate = max < to && (lastQueryParams.to < to || now - lastQueryTime > twelveHours);
+  const minDateNeedsUpdate = from < min && from < lastQueryParams.from;
+
+  return maxDateNeedUpdate || minDateNeedsUpdate;
+}
+
+function transactionTransformer(transactions = [], queryParams) {
+
+  if(transactions.length === 0) {
+    return {
+      metadata: {
+        lastQueryParams: queryParams,
+        lastQueryTime: new Date().getTime(),
+        updatedAt: new Date(),
+        updatedTime: new Date().getTime()
+      },
+      data: transactions
+    };
+  }
+
+  const max = transactions.reduce((t1, t2) => t1.txDate >= t2.txDate ? t1 : t2);
+  const min = transactions.reduce((t1, t2) => t1.txDate <= t2.txDate ? t1 : t2);
+
+  return {
+    metadata: {
+      max: max.txDate,
+      min: min.txDate,
+      lastQueryParams: queryParams,
+      lastQueryTime: new Date().getTime(),
+      updatedAt: new Date(),
+      updatedTime: new Date().getTime()
+    },
+    data: transactions
+  };
 }
 
 class TransactionLoader {
@@ -73,13 +146,21 @@ class TransactionLoader {
       queryParams: {
         from: dateFilter.startDate,
         to: dateFilter.endDate
-      }
+      },
+      transformer: transactionTransformer
     }
 
     try {
-      const loadedTransactions = await load(params);
+      let loadedTransactions = await load(params);
 
-      const filteredTransactions = loadedTransactions.filter(tx => tx.txDate >= dateFilter.startDate && tx.txDate <= dateFilter.endDate); 
+      if(shouldGetFromRestApi(params.queryParams, loadedTransactions.metadata)) {
+        console.log("Checking for new transactions, params:", params.queryParams);
+        const updatedTransactions = await loadFromRestApi(params.resourcePath, params.queryParams);
+        loadedTransactions = transactionTransformer(updatedTransactions, params.queryParams);    
+        saveInStorage(params.key, loadedTransactions);
+      }
+
+      const filteredTransactions = loadedTransactions.data.filter(tx => tx.txDate >= dateFilter.startDate && tx.txDate <= dateFilter.endDate); 
       this.setTransactions(filteredTransactions);
     } catch(err) {
       console.log("Error loading transactions", err);
