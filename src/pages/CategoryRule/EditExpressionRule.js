@@ -6,6 +6,7 @@ import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import CloseIcon from '@material-ui/icons/Close';
 import Dialog from '@material-ui/core/Dialog';
+import DialogActions from "@material-ui/core/DialogActions";
 import FormControl from '@material-ui/core/FormControl';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
@@ -134,7 +135,8 @@ export default function EditExpressionRule({
   const [name, setName] = useState(expressionRule.name);
   const [category, setCategory] = useState(expressionRule.categoryId); 
   const [ruleType, setRuleType] = useState(expressionRule.ruleType); 
-  const [parameter, setParameter] = useState(expressionRule.parameter); 
+  const [parameter, setParameter] = useState(expressionRule.parameter);
+  const [priority, setPriority] = useState(expressionRule.priority);
 
   function save() {
     const updatedExpressionRule = Object.assign({}, expressionRule);
@@ -142,14 +144,19 @@ export default function EditExpressionRule({
     updatedExpressionRule.categoryId = category;
     updatedExpressionRule.ruleType = ruleType;
     updatedExpressionRule.parameter = parameter;
+    updatedExpressionRule.priority = priority;
 
     console.log("Saving expression rule", updatedExpressionRule);
     saveAction(updatedExpressionRule);
   }
 
   function resetFields() {
+    console.log("Reseting fields...")
+    setName(expressionRule.name);
     setCategory(expressionRule.categoryId);
+    setPriority(expressionRule.priority);
     setRuleType(expressionRule.ruleType);
+    setParameter(expressionRule.parameter);
     editAction(false)
   }
 
@@ -172,7 +179,7 @@ export default function EditExpressionRule({
             <TextField
               id="rule-name"
               label={intl.formatMessage({ id: 'name' })}
-              defaultValue={expressionRule.name}
+              value={name}
               variant="outlined"
               onChange={(e) => setName(e.target.value)}
               fullWidth
@@ -181,12 +188,26 @@ export default function EditExpressionRule({
               }}
             />
           </Grid>
-          <Grid item xs={12}>
+          <Grid item xs={7}>
             <CategorySelect
               accountId={expressionRule.accountId}
               category={category}
               readOnly={viewMode}
               onChange={(e) => setCategory(e.target.value)}
+            />
+          </Grid>
+          <Grid item xs={5}>
+            <TextField
+              id="rule-priority"
+              label={intl.formatMessage({ id: 'priority' })}
+              value={priority}
+              variant="outlined"
+              onChange={(e) => setPriority(e.target.value)}
+              fullWidth
+              type="number"
+              InputProps={{
+                readOnly: viewMode,
+              }}
             />
           </Grid>
           <Grid item xs={5}>
@@ -203,20 +224,21 @@ export default function EditExpressionRule({
               variant="outlined"
               onChange={(e) => setParameter(e.target.value)}
               fullWidth
-              defaultValue={expressionRule.parameter}
+              value={parameter}
               InputProps={{
                 readOnly: viewMode,
               }}
             />
           </Grid>
           {!viewMode && (
-            <EditActionButtons 
-              cancelText={intl.formatMessage({ id: 'cancel' })}
-              saveText={intl.formatMessage({ id: 'save' })}
-              classes={classes}
-              onClickSave={save}
-              onClickCancel={resetFields}
-            />
+            <DialogActions>
+              <Button onClick={resetFields}>
+                {intl.formatMessage({ id: "cancel" })}
+              </Button>
+              <Button color="primary" variant="contained" onClick={save}>
+                {intl.formatMessage({ id: "save" })}
+              </Button>
+            </DialogActions>
           )}
         </Grid>
       </div>
