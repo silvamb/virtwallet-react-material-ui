@@ -125,6 +125,24 @@ export async function load({ key, resourcePath, queryParams, transformer, callba
   return data;
 }
 
+export async function reload({ key, resourcePath, queryParams, transformer, callback }) {
+  console.log("Reloading data from key", key, "in storage");
+
+  let data = await loadFromRestApi(resourcePath, queryParams);
+
+  if(transformer) {
+    data = transformer(data, queryParams);
+  }
+
+  saveInStorage(key, data);
+
+  if (data !== null && callback) {
+    callback(data);
+  }
+
+  return data;
+}
+
 export async function create({ key, merger, resourcePath, body, callback }) {
   await postInRestApi(resourcePath, body);
 

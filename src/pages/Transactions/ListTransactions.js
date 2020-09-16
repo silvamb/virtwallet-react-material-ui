@@ -397,19 +397,22 @@ const TransactionsPage = (props) => {
   }
 
   const [data, setData] = useState(null);
-  const [fetchingData, setFetchingData] = useState(false);
+  const [dataLoadRequested, setDataLoadRequested] = useState(false);
+  const [reload, setReload] = useState(false);
   const [selectedFilter, setDateFilter] = useState(initialFilter);
 
-    // TODO Load categories too. Similar do DataLoader in category rule.
-  const dataLoader = new DataLoader(setData, messageHandler)
+  const dataLoader = new DataLoader(setData, setDateFilter, messageHandler);
   const loading = data === null;
 
   useEffect(() => {
-    if (!fetchingData) {
-      setFetchingData(true);
+    if(!dataLoadRequested) {
       dataLoader.load(accountId, walletId, selectedFilter);
+      setDataLoadRequested(true);
+    } else if (reload) {
+      dataLoader.reload(accountId, walletId, selectedFilter);
+      setReload(false);
     }
-  }, [fetchingData, dataLoader, accountId, walletId, selectedFilter]);
+  }, [dataLoadRequested, reload, dataLoader, accountId, walletId, selectedFilter]);
   const [selectedTransaction, setTransaction] = useState({});
   const [editing, setEditing] = useState(false);
   const [originalTransaction, setOriginalTransaction] = useState(null);
@@ -456,7 +459,7 @@ const TransactionsPage = (props) => {
 
     const showMessageAndUpdateList = () => {
       setMessage("Transaction Saved!");
-      dataLoader.load(accountId, walletId, selectedFilter);
+      setReload(true);
     };
     saveTransaction(originalTransaction, updatedTransaction, showMessageAndUpdateList);
   }
@@ -509,7 +512,7 @@ const TransactionsPage = (props) => {
     setDateFilter(prevState => {
       return {...prevState, ...updatedValues};
     });
-    setFetchingData(false);
+    setReload(true);
   }
 
   function getTransactions() {

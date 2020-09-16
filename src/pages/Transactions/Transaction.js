@@ -1,6 +1,6 @@
 
 import { CategoryLoader } from '../Category/Category';
-import { ChangeSet, load, loadFromRestApi, saveInStorage, update } from '../../utils/dataSync';
+import { ChangeSet, load, loadFromStorage, reload, update } from '../../utils/dataSync';
 
 class TransactionMetadata {
   constructor({
@@ -132,14 +132,50 @@ function transactionTransformer(transactions = [], queryParams) {
 
 class TransactionLoader {
 
-  constructor(setTransactions, messageHandler) {
+  constructor(setTransactions, setFilter, messageHandler) {
     this.setTransactions = setTransactions;
+    this.setFilter = setFilter;
     this.messageHandler = messageHandler;
   }
 
-  async load(accountId, walletId, dateFilter) {
-    console.log("Loading transactions for account", accountId, "and wallet", walletId, "period", dateFilter);
-    // TODO think a simple logic to load recent transactions
+  async load(accountId, walletId, initialDateFilter) {
+    console.log("Loading transactions for account", accountId, "and wallet", walletId);
+
+    const key = `transactions_${accountId}_${walletId}`;
+
+    try {
+      let transactionRecord = loadFromStorage(key);
+      console.log("Data from key", key, "in storage", transactionRecord);
+      if (transactionRecord === null || transactionRecord === undefined) {
+        const params = {
+          key: key,
+          resourcePath: `/account/${accountId}/wallet/${walletId}/transaction`,
+          queryParams: {
+            from: initialDateFilter.startDate,
+            to: initialDateFilter.endDate
+          },
+          transformer: transactionTransformer
+        }
+          transactionRecord = await reload(params);
+        
+      }
+
+      this.setTransactions(transactionRecord.data);
+
+      this.setFilter({
+        startDate: transactionRecord.metadata.lastQueryParams.from,
+        endDate: transactionRecord.metadata.lastQueryParams.to,
+      });
+
+    } catch(err) {
+      console.log("Error loading transactions", err);
+      this.messageHandler.showMessage("error_loading_transactions");
+      this.setTransactions([]);
+    }
+    
+  }
+
+  async reload(accountId, walletId, dateFilter) {
     const params = {
       key: `transactions_${accountId}_${walletId}`,
       resourcePath: `/account/${accountId}/wallet/${walletId}/transaction`,
@@ -154,10 +190,7 @@ class TransactionLoader {
       let loadedTransactions = await load(params);
 
       if(shouldGetFromRestApi(params.queryParams, loadedTransactions.metadata)) {
-        console.log("Checking for new transactions, params:", params.queryParams);
-        const updatedTransactions = await loadFromRestApi(params.resourcePath, params.queryParams);
-        loadedTransactions = transactionTransformer(updatedTransactions, params.queryParams);    
-        saveInStorage(params.key, loadedTransactions);
+        loadedTransactions = await reload(params);
       }
 
       const filteredTransactions = loadedTransactions.data.filter(tx => tx.txDate >= dateFilter.startDate && tx.txDate <= dateFilter.endDate); 
@@ -172,8 +205,9 @@ class TransactionLoader {
 }
 
 export class DataLoader {
-  constructor(setter, messageHandler) {
-    this.setter = setter;
+  constructor(setData, setFilter, messageHandler) {
+    this.setData = setData;
+    this.setFilter = setFilter;
     this.messageHandler = messageHandler;
   }
 
@@ -190,13 +224,31 @@ export class DataLoader {
       categorySetter,
       this.messageHandler
     );
-    const transactionLoader = new TransactionLoader(transactionSetter, this.messageHandler);
+    const transactionLoader = new TransactionLoader(transactionSetter, this.setFilter, this.messageHandler);
 
     await Promise.all([
       categoryLoader.loadCategories(accountId, walletId, dateFilter),
       transactionLoader.load(accountId, walletId, dateFilter)
     ]);
 
-    this.setter(data);
+    this.setData(data);
+  }
+
+  async reload(accountId, walletId, dateFilter) {
+    const data = {
+      transactions: [],
+    };
+
+    const transactionSetter = (transactions) => data.transactions = transactions;
+
+    const transactionLoader = new TransactionLoader(transactionSetter, this.setFilter, this.messageHandler);
+    await transactionLoader.reload(accountId, walletId, dateFilter);
+
+    this.setData((oldData) => {
+      return {
+        categories: oldData.categories,
+        transactions: data.transactions
+      }
+    });
   }
 }
