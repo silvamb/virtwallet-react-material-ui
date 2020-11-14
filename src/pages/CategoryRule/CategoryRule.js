@@ -7,32 +7,32 @@ function getRuleTypeList(ruleType) {
   return ruleType === 'keyword' ? 'keywordRules' : 'expressionRules';
 }
 
-function merger(categoryRules, changeSet) {
-  console.log("Merging", categoryRules, changeSet);
-  const ruleIdField =  getRuleIdField(changeSet.oldState.ruleType);
-  const listToUpdate =  getRuleTypeList(changeSet.oldState.ruleType);
+function merger(categoryRules, {data: updatedRule}) {
+  console.log("Merging", categoryRules, updatedRule);
+  const ruleIdField =  getRuleIdField(updatedRule.ruleType);
+  const listToUpdate =  getRuleTypeList(updatedRule.ruleType);
   const rulesList = categoryRules[listToUpdate];
 
-  const rule = rulesList.find(rule => rule[ruleIdField] === changeSet.oldState[ruleIdField]);
+  const rule = rulesList.find(rule => rule[ruleIdField] === updatedRule[ruleIdField]);
   const indexOfRule = rulesList.indexOf(rule);
   console.log("Found item", rule, "at", indexOfRule);
 
   const updatedRules = Object.assign({}, categoryRules);
-  updatedRules[listToUpdate][indexOfRule] = changeSet.newState;
+  updatedRules[listToUpdate][indexOfRule] = updatedRule;
 
   console.log("Merged", updatedRules);
 
   return updatedRules;
 }
 
-function deleteMerger(categoryRules, itemToDelete) {
-  console.log("Removing item", itemToDelete);
-  const ruleIdField =  getRuleIdField(itemToDelete.ruleType);
-  const listToUpdate =  getRuleTypeList(itemToDelete.ruleType);
+function deleteMerger(categoryRules, {data: deletedRule}) {
+  console.log("Removing item", deletedRule);
+  const ruleIdField =  getRuleIdField(deletedRule.ruleType);
+  const listToUpdate =  getRuleTypeList(deletedRule.ruleType);
   const rulesList = categoryRules[listToUpdate];
 
   console.log("List to update: " + ruleIdField);
-  const rule = rulesList.find(rule => rule[ruleIdField] === itemToDelete[ruleIdField]);
+  const rule = rulesList.find(rule => rule[ruleIdField] === deletedRule[ruleIdField]);
   const indexOfRule = rulesList.indexOf(rule);
   console.log("Found item", rule, "at", indexOfRule);
 
@@ -97,9 +97,9 @@ export function createCategoryRule(categoryRule, onCreate, messageHandler) {
 
   const listToUpdate =  getRuleTypeList(categoryRule.ruleType);
 
-  const merger = (current, created) => {
+  const merger = (current, [{data: newCategoryRule}]) => {
     const updated = Object.assign({}, current);
-    updated[listToUpdate].push(created[0]);
+    updated[listToUpdate].push(newCategoryRule);
 
     return updated;
   }

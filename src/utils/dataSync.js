@@ -61,7 +61,7 @@ export async function postInRestApi(resourcePath, body) {
     const data = JSON.stringify(body);
     console.log("Request post data to API:", resourcePath, data);
     const result = await instance.post(resourcePath, data);
-    console.log("Data posted", result.data);
+    console.log("Post data result", result.data);
     return result.data;
   } catch (error) {
     console.log("Error posting data in API", error);
@@ -144,10 +144,10 @@ export async function reload({ key, resourcePath, queryParams, transformer, call
 }
 
 export async function create({ key, merger, resourcePath, body, callback }) {
-  await postInRestApi(resourcePath, body);
+  const createdObjResult = await postInRestApi(resourcePath, body);
 
   const currentData = loadFromStorage(key);
-  const updated = merger(currentData, body);
+  const updated = merger(currentData, createdObjResult);
 
   saveInStorage(key, updated);
 
@@ -164,12 +164,11 @@ export async function update({
   resourcePath,
   callback,
 }) {
-  const currentData = loadFromStorage(key);
+  const updatedObjResult = await saveInRestApi(resourcePath, changeSet);
 
   console.log("Merging data");
-  const updated = merger(currentData, changeSet);
-
-  await saveInRestApi(resourcePath, changeSet);
+  const currentData = loadFromStorage(key);
+  const updated = merger(currentData, updatedObjResult);
 
   saveInStorage(key, updated);
 
@@ -205,13 +204,13 @@ export async function remove({
   resourcePath,
   callback,
 }) {
+
+  const deleteResult = await deleteInRestApi(resourcePath);
+
   const currentData = loadFromStorage(key);
 
   console.log("Merging data");
-  const updated = merger(currentData, itemToDelete);
-
-  await deleteInRestApi(resourcePath);
-
+  const updated = merger(currentData, deleteResult);
   saveInStorage(key, updated);
 
   if (callback) {

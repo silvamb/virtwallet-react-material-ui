@@ -246,7 +246,6 @@ function groupByCategory(transactions, categories) {
       console.log("Category not found", categoryId);
     }
 
-    
   }
 
   return groupArray;
@@ -430,7 +429,7 @@ const TransactionsPage = (props) => {
     
     if(searchTerm) {
       return sorted.filter(tx => {
-        return tx.keyword.toUpperCase().indexOf(searchTerm.toUpperCase()) >= 0;
+        return tx.keyword.toUpperCase().indexOf(searchTerm.toUpperCase()) >= 0 || tx.description.toUpperCase().indexOf(searchTerm.toUpperCase()) >= 0;
       });
     }
     

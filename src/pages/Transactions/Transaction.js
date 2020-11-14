@@ -27,13 +27,13 @@ class TransactionData {
   }
 }
 
-function merger(transactions = new TransactionData(), changeSet) {
-  console.log("Looking for transaction ", changeSet.oldState.txId);
-  const tx = transactions.data.find(transaction => transaction.txId === changeSet.oldState.txId);
+function merger(transactions = new TransactionData(), {data: updatedTransaction}) {
+  console.log("Looking for transaction ", updatedTransaction.txId);
+  const tx = transactions.data.find(transaction => transaction.txId === updatedTransaction.txId);
   const indexOfTx = transactions.data.indexOf(tx);
-  console.log("Found transaction ", changeSet.oldState.txId, " at index ", indexOfTx);
+  console.log("Found transaction ", updatedTransaction.txId, " at index ", indexOfTx);
   const updatedTransactions = transactions.data.slice();
-  updatedTransactions[indexOfTx] = changeSet.newState;
+  updatedTransactions[indexOfTx] = updatedTransaction;
 
   return new TransactionData(transactions.metadata, updatedTransactions);
 }

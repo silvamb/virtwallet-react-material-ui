@@ -1,12 +1,12 @@
 import { ChangeSet, create, load, update } from '../../utils/dataSync';
 
-function merger(categories, changeSet) {
-  console.log("Looking for category ", changeSet.oldState.categoryId);
-  const category = categories.find(category => category.categoryId === changeSet.oldState.categoryId);
+function merger(categories, {data: updatedCategory}) {
+  console.log("Looking for category ", updatedCategory.categoryId);
+  const category = categories.find(category => category.categoryId === updatedCategory.categoryId);
   const indexOfCategoryId = categories.indexOf(category);
-  console.log("Found category ",changeSet.oldState.categoryId, " at index ", indexOfCategoryId);
+  console.log("Found category ", updatedCategory.categoryId, " at index ", indexOfCategoryId);
   const updatedCategories = categories.slice();
-  updatedCategories[indexOfCategoryId] = changeSet.newState;
+  updatedCategories[indexOfCategoryId] = updatedCategory;
 
   return updatedCategories;
 }
@@ -61,8 +61,8 @@ export function saveCategory(originalCategory, updatedCategory, onSave, messageH
 export function createCategory(accountId, category, onCreate, messageHandler) {
   const resourcePath = `/account/${accountId}/category`;
 
-  const merger = (current, created) => {
-    return current.concat(created);
+  const merger = (current = [], [{data: newCategory}]) => {
+    return current.concat(newCategory);
   }
   const body = Object.assign({accountId: accountId}, category);
 
