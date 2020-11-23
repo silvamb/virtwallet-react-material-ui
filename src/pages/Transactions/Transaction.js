@@ -62,7 +62,7 @@ export function saveTransaction(originalTransaction, updatedTransaction, onSave)
   const changeSet = new ChangeSet(originalTransaction, updatedTransaction, diff);
   
   const changes = diff(changeSet);
-  if(Object.keys(changes.old) == 0) {
+  if(Object.keys(changes.old) === 0) {
     console.log("No changes made to transaction, ignoring");
     return;
   }
