@@ -24,6 +24,13 @@ function diff(changeSet) {
     }
   }
 
+  // budget added
+  if(!originalCategory.budget && updatedCategory.budget) {
+    old.budget = null;
+    updated.budget = updatedCategory.budget;
+    updated.budget.versionId = 1;
+  }
+
   return {
     old: old,
     "new": updated

@@ -7,10 +7,14 @@ import Button from '@material-ui/core/Button';
 import CloseIcon from '@material-ui/icons/Close';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
+import FormControl from '@material-ui/core/FormControl';
 import Dialog from '@material-ui/core/Dialog';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import InputAdornment from '@material-ui/core/InputAdornment';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
@@ -84,6 +88,38 @@ function EditActionButtons({cancelText, saveText, classes, onClickSave, onClickC
   );
 }
 
+function BudgetTypeSelect({budgetType = "monthly", readOnly, onChange}) {
+  const intl = useIntl();
+
+  return (
+    <FormControl fullWidth variant="outlined">
+      <InputLabel id="budget-type-label">
+        {intl.formatMessage({ id: "budget_type" })}
+      </InputLabel>
+      <Select
+        labelId="budget-type-label"
+        id="budgetType"
+        value={budgetType}
+        onChange={onChange}
+        label={intl.formatMessage({ id: "budget_type" })}
+        inputProps={{
+          readOnly: readOnly,
+        }}
+      >
+        <MenuItem value="monthly">
+          {intl.formatMessage({ id: 'monthly' })}
+        </MenuItem>
+        <MenuItem value="bimonthly">
+          {intl.formatMessage({ id: 'bimonthly' })}
+        </MenuItem>
+        <MenuItem value="yearly">
+          {intl.formatMessage({ id: 'yearly' })}
+        </MenuItem>
+      </Select>
+    </FormControl>
+  )
+}
+
 export default function CategoryDetails({
   category, 
   isOpen,
@@ -94,10 +130,10 @@ export default function CategoryDetails({
   editAction,
   fullScreen=false 
 }) {
-  console.log("Re-rendering the whole thing");
+
   const intl = useIntl();
   const classes = useStyles();
-  let updatedCategory = Object.assign({}, category);
+  const [updatedCategory, setCategory] = useState(category);
 
   function save() {
     console.log("Saving category changes", updatedCategory);
@@ -108,10 +144,36 @@ export default function CategoryDetails({
     event.preventDefault();
 
     const value = event.target.value;
-    const updated = Object.assign({}, category);
+    const updated = Object.assign({}, updatedCategory);
     updated[field] = value;
 
-    updatedCategory = updated;
+    setCategory(updated);
+  }
+
+  function setBudget(field, event) {
+    event.preventDefault();
+
+    const value = event.target.value;
+    const updated = Object.assign({}, updatedCategory);
+
+    if(!updatedCategory.budget) {
+      updated.budget = {
+        type: "monthly",
+        value: 0
+      };
+    } else {
+      updated.budget = Object.assign({}, updatedCategory.budget);
+    }
+
+    
+    updated.budget[field] = value;
+
+    setCategory(updated);
+  }
+
+  function resetFields() {
+    setCategory(category);
+    editAction(false)
   }
 
   let actionButtons;
@@ -124,8 +186,8 @@ export default function CategoryDetails({
                           cancelText={intl.formatMessage({ id: 'cancel' })}
                           saveText={intl.formatMessage({ id: 'save' })}
                           classes={classes}
-                          onClickSave={saveAction}
-                          onClickCancel={() => editAction(false)}
+                          onClickSave={save}
+                          onClickCancel={resetFields}
                         />;
   }
 
@@ -148,7 +210,7 @@ export default function CategoryDetails({
           <TextField
             id="category-id"
             label={intl.formatMessage({ id: 'category_id' })}
-            defaultValue={category.categoryId}
+            value={updatedCategory.categoryId}
             InputProps={{
               readOnly: true,
             }}
@@ -160,7 +222,7 @@ export default function CategoryDetails({
           <TextField
             id="category-name"
             label={intl.formatMessage({ id: 'category_name' })}
-            defaultValue={category.name}
+            value={updatedCategory.name}
             InputProps={{
               readOnly: viewMode,
             }}
@@ -172,7 +234,7 @@ export default function CategoryDetails({
           <TextField
               id="category-description"
               label={intl.formatMessage({ id: "category_description" })}
-              defaultValue={category.description}
+              value={updatedCategory.description}
               InputLabelProps={{
                 shrink: true,
               }}
@@ -182,6 +244,32 @@ export default function CategoryDetails({
               fullWidth
               variant="outlined"
               onChange={(e) => setValue('description', e)}
+            />
+        </Grid>
+        <Grid item xs={8}>
+          <BudgetTypeSelect 
+            budgetType={updatedCategory.budget ? updatedCategory.budget.type : "monthly"}
+            onChange={(e) => setBudget('type', e)}
+            readOnly={viewMode}
+          />
+        </Grid>
+        <Grid item xs={4}>
+          <TextField
+              id="budget-value"
+              label={intl.formatMessage({ id: "budget_value" })}
+              type="number"
+              InputLabelProps={{
+                shrink: true,
+              }}
+              InputProps={{
+                readOnly: viewMode,
+                startAdornment: (
+                  <InputAdornment position="start">€</InputAdornment>
+                ),
+              }}
+              value={updatedCategory.budget ? updatedCategory.budget.value : 0 }
+              variant="outlined"
+              onChange={(e) => setBudget('value', e)}
             />
         </Grid>
         {editActionButtons}

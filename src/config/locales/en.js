@@ -36,6 +36,9 @@ const messages = defineMessages({
   owner: 'Owner',
   add_new_period_text: 'Click here to add new period',
   account_details: 'Account Details',
+  bimonthly: 'Bimonthly',
+  budget_type: 'Budget Type',
+  budget_value: 'Budget',
   categories: 'Categories',
   create_category: 'Create a Category',
   create_period_manually: 'Create Period Manually',
@@ -63,6 +66,7 @@ const messages = defineMessages({
   members: 'Members',
   manually_set_periods: 'Manually Set Periods',
   month_start_date_rule: 'Month Start Date Rule',
+  monthly: 'Monthly',
   parameter: 'Parameter',
   no_categories: 'Account has no categories yet',
   no_expression_rules: 'Empty',
@@ -100,6 +104,7 @@ const messages = defineMessages({
   transaction_id: 'Transaction ID',
   try_again: 'Try Again',
   wallets: 'Wallets',
+  yearly: 'Yearly',
 
 })
 

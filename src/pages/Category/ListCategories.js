@@ -90,7 +90,6 @@ const CategoriesPage = (props) => {
 
   useEffect(() => {
     if(categories == null) {
-      // TODO Change hardcoded account to a parameter
       categoryLoader.loadCategories(accountId);
     }
   }, [categories, categoryLoader, accountId]);
@@ -165,6 +164,7 @@ const CategoriesPage = (props) => {
   return (
     <Page pageTitle={intl.formatMessage({ id: 'categories' })}>
       <div className={classes.root}>
+      {selectedCategory.categoryId !== undefined &&
         <CategoryDetails
           category={selectedCategory}
           isOpen={selectedCategory.categoryId !== undefined}
@@ -175,6 +175,7 @@ const CategoriesPage = (props) => {
           definedClasses={classes}
           fullScreen={fullScreen}
         />
+      }
         <NewCategory
           isOpen={creating}
           closeAction={() => setCreating(false)}
