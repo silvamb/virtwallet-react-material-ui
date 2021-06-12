@@ -1,3 +1,9 @@
+# Disclaimer
+
+*THIS REPOSITORY IS ARCHIVED*.
+
+I'm no longer working on it. Will leave it here for a couple of years and remove it.
+
 # virtwallet-react-material-ui
 
 Front-end built in React JS and Material UI for the [Virtwallet Serverless App](https://github.com/silvamb/virtwallet-serverless).
